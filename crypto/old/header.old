@@ -1,0 +1,49 @@
+package crypto
+
+import (
+	"crypto/hmac"
+	"crypto/sha512"
+	"errors"
+	"hash"
+	"math"
+)
+
+const MACSUM_SIZE int = 64 //AES, so EncryptedSize = Size
+const HEADER_SIZE int = SECRET_SIZE*3 + MACSUM_SIZE
+
+var ENCRYPTED_HEADER_SIZE int = int(math.Ceil(float64(HEADER_SIZE)/float64(512))) * 512 // 4096/8 = 512
+
+type Header struct {
+	AesKey          [SECRET_SIZE]byte
+	SharedIV        [SECRET_SIZE]byte
+	MacKey          [SECRET_SIZE]byte
+	EncryptedMacSum []byte
+}
+
+func ParseHeader(in []byte) (*Header, hash.Hash, error) {
+	if len(in) != HEADER_SIZE {
+		return nil, nil, errors.New("invalid header")
+	}
+
+	header := Header{
+		AesKey:          in[:SECRET_SIZE],
+		SharedIV:        in[SECRET_SIZE : SECRET_SIZE*2],
+		MacKey:          in[SECRET_SIZE*2 : SECRET_SIZE*3],
+		EncryptedMacSum: in[SECRET_SIZE*3:],
+	}
+	mac := hmac.New(sha512.New, header.MacKey)
+	mac.Write(header.AesKey)
+	mac.Write(header.SharedIV)
+
+	return &header, mac, nil
+}
+
+func (h *Header) Dump() []byte {
+	b := make([]byte, 0, HEADER_SIZE)
+	b = append(b, h.AesKey...)
+	b = append(b, h.SharedIV...)
+	b = append(b, h.MacKey...)
+	b = append(b, h.EncryptedMacSum...)
+
+	return b
+}
