@@ -95,11 +95,9 @@ func main() {
 			removePanic(outFile, err)
 		}
 
-		// Flush the remaining buffer and go back to the start of the file
+		// Flush the remaining buffer and write the macsum at the start of the file
 		enWriter.Flush()
 		outFile.Seek(0, 0)
-
-		// And finally write the macsum
 		msum := mac.Sum(nil)
 		outFile.Write(msum) // Write the 64 bytes of encrypted macsum (this writes to the mac too, but we already evaluated the sum)
 
