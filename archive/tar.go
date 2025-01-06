@@ -31,25 +31,25 @@ func Tar(paths []string, out io.Writer) error {
 				if err != nil {
 					return err
 				}
-				header, err := tar.FileInfoHeader(info, info.Name())
+				fileHeader, err := tar.FileInfoHeader(info, info.Name())
 				if err != nil {
 					return err
 				}
 
 				if baseDir != "" {
-					header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, fpath))
+					fileHeader.Name = filepath.Join(baseDir, strings.TrimPrefix(path, fpath))
 				}
 
-				if err := tarball.WriteHeader(header); err != nil {
+				if err := tarball.WriteHeader(fileHeader); err != nil {
 					return err
 				}
 
 				if info.IsDir() {
-					fmt.Println("+ " + header.Name)
+					fmt.Println("+ " + fileHeader.Name)
 					return nil
 				}
 
-				fmt.Printf("+ [%s] %s\n", FormatByteCount(info.Size()), header.Name)
+				fmt.Printf("+ [%s] %s\n", FormatByteCount(info.Size()), fileHeader.Name)
 				file, err := os.Open(path)
 				if err != nil {
 					return err
