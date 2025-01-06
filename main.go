@@ -144,7 +144,7 @@ func main() {
 		if _, err = io.Copy(mac, inFile); err != nil {
 			panic(err)
 		}
-		if !hmac.Equal(macSum, mac.Sum(nil)) {
+		if !hmac.Equal(macSum, mac.Sum(nil)) { // Unnecessary, but let's leave it as is for good practice
 			fmt.Println("Invalid macsum. It seems like the file has been tampered with")
 			os.Exit(1)
 		}
