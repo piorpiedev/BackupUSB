@@ -5,7 +5,7 @@ import (
 	configuration "backupusb/config"
 	"backupusb/crypto"
 	"crypto/hmac"
-	"crypto/x509"
+	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 )
+
+const FILE_EXTENSION = ".bk"
 
 func removePanic(f *os.File, err error) {
 	f.Close()
@@ -36,10 +38,8 @@ func main() {
 	switch config.Mode {
 
 	case "encrypt":
-
-		// Parse key
-		pubKey, err := x509.ParsePKCS1PublicKey(key)
-		if err != nil {
+		// Verify key len
+		if len(key) != crypto.PUB_KEY_SIZE {
 			fmt.Printf("Invalid key in config file. Is it the right one?")
 			os.Exit(1)
 		}
@@ -61,35 +61,42 @@ func main() {
 		}
 
 		// Create file
-		encryptedFile, err := os.Create("data/" + strconv.FormatInt(time.Now().UnixMilli(), 10))
+		outFile, err := os.Create("data/" + strconv.FormatInt(time.Now().UnixMilli(), 10) + FILE_EXTENSION)
 		if err != nil {
 			panic(err)
 		}
 
 		// Create AES writer
-		encryptedFile.Write(make([]byte, crypto.ENCRYPTED_HEADER_SIZE)) // Blank header, make space for the future header
-		header, mac := crypto.GenHeader()
-		hashedWriter := io.MultiWriter(encryptedFile, mac)
-		parser, err := crypto.NewAesWriter(header.AesKey, header.IV, hashedWriter)
+		outFile.Write(make([]byte, crypto.MACSUM_SIZE)) // Make space for the future macsum
+		header, enHeader := crypto.GenHeader([crypto.PUB_KEY_SIZE]byte(key))
+		mac := hmac.New(sha512.New, header.MacKey)
+		parser := io.MultiWriter(outFile, mac)
+		enWriter, err := crypto.NewAesWriter(header.AesKey, header.IV, parser)
 		if err != nil {
-			removePanic(encryptedFile, err)
+			removePanic(outFile, err)
+		}
+
+		// Write header
+		_, err = parser.Write(enHeader.Dump())
+		if err != nil {
+			removePanic(outFile, err)
 		}
 
 		// Compress, encrypt and write
+		// While the compression is executed, the header memory is generally reused (since it's not called anymore by the code)
 		fmt.Println("Compressing...")
-		if err = archive.Tar(config.Paths, parser); err != nil {
-			removePanic(encryptedFile, err)
+		if err = archive.Tar(config.Paths, enWriter); err != nil {
+			removePanic(outFile, err)
 		}
 
-		// Flush the remaining buffer and write header to file
-		parser.Flush()
-		encryptedFile.Seek(0, 0) // Back to start of file
-		header.EncryptedMacSum = mac.Sum(nil)
-		err = crypto.WriteHeader(encryptedFile, pubKey, &header)
-		if err != nil {
-			removePanic(encryptedFile, err)
-		}
-		encryptedFile.Close()
+		// Flush the remaining buffer and go back to the start of the file
+		enWriter.Flush()
+		outFile.Seek(0, 0)
+
+		// And finally write the macsum
+		msum := mac.Sum(nil)
+		outFile.Write(msum) // Write the 64 bytes of encrypted macsum (this writes to the mac too, but we already evaluated the sum)
+		outFile.Close()
 
 	case "decrypt":
 
@@ -104,48 +111,51 @@ func main() {
 			path = strings.TrimSuffix(path, p)
 		}
 
-		// Parse key
-		privKey, err := x509.ParsePKCS1PrivateKey(key)
-		if err != nil {
+		// Verify key len
+		if len(key) != crypto.PRIV_KEY_SIZE {
 			fmt.Printf("Invalid key in config file. Is it the right one?")
 			os.Exit(1)
 		}
 
 		// Open file
-		encryptedFile, err := os.Open(path)
+		inFile, err := os.Open(path)
 		if err != nil {
 			panic(err)
 		}
-		defer encryptedFile.Close()
+		defer inFile.Close()
 
-		// Read the file header
-		header, mac, err := crypto.ReadHeader(encryptedFile, privKey)
+		// Read the macsum
+		macSum := make([]byte, crypto.MACSUM_SIZE)
+		inFile.Read(macSum)
+
+		// Read the file header (keys)
+		header, mac, err := crypto.ReadHeader(inFile, key)
 		if err != nil {
 			panic(err)
 		}
 
 		// Verify file integrity
 		fmt.Println("Verifying file integrity...")
-		if _, err = io.Copy(mac, encryptedFile); err != nil {
+		if _, err = io.Copy(mac, inFile); err != nil {
 			panic(err)
 		}
-		if !hmac.Equal(header.EncryptedMacSum, mac.Sum(nil)) {
+		if !hmac.Equal(macSum, mac.Sum(nil)) {
 			fmt.Println("Invalid macsum. It seems like the file has been tampered with")
 			os.Exit(1)
 		}
-		encryptedFile.Seek(int64(crypto.ENCRYPTED_HEADER_SIZE), 0) // Back to the encrypted data start
+		inFile.Seek(int64(crypto.ENCRYPTED_HEADER_SIZE+crypto.MACSUM_SIZE), 0) // Back to the encrypted data start
 
 		// Create AES reader
-		parser, err := crypto.NewAesReader(header.AesKey, header.IV, encryptedFile)
+		enReader, err := crypto.NewAesReader(header.AesKey, header.IV, inFile)
 		if err != nil {
 			panic(err)
 		}
 
 		// Decrypt and extract
 		fmt.Println("Extracting...")
-		folderName := filepath.Base(path) + "_"
+		folderName := strings.TrimSuffix(filepath.Base(path), FILE_EXTENSION)
 		os.Mkdir(folderName, os.ModeDir)
-		err = archive.Untar(parser, folderName)
+		err = archive.Untar(enReader, folderName)
 		if err != nil {
 			panic(err)
 		}

@@ -29,6 +29,12 @@ type AESReader interface {
 	Read(data []byte) (int, error)
 }
 
+// func copyIV(iv []byte) []byte {
+// 	ivCopy := make([]byte, IV_SIZE)
+// 	copy(ivCopy, iv)
+// 	return ivCopy
+// }
+
 func NewAesWriter(aesKey, iv []byte, out io.Writer) (AESWriter, error) {
 	aes, err := aes.NewCipher(aesKey)
 	if err != nil {
@@ -43,7 +49,7 @@ func NewAesWriter(aesKey, iv []byte, out io.Writer) (AESWriter, error) {
 	}, nil
 }
 func NewAesReader(aesKey, iv []byte, in io.Reader) (AESReader, error) {
-	aes, err := aes.NewCipher(aesKey)
+	block, err := aes.NewCipher(aesKey)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +58,7 @@ func NewAesReader(aesKey, iv []byte, in io.Reader) (AESReader, error) {
 		decr: make([]byte, 0, BUFFER_SIZE),
 		encr: make([]byte, BUFFER_SIZE),
 		in:   in,
-		ctr:  cipher.NewCTR(aes, iv),
+		ctr:  cipher.NewCTR(block, iv),
 	}
 
 	// Fill the encrypted buffer
