@@ -1,6 +1,8 @@
 package config
 
 import (
+	"backupusb/crypto"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -44,6 +46,9 @@ func Load() *Config {
 
 		Create()
 		fmt.Println("Please fill the config.json file and run again")
+		privKey, pubKey := crypto.GenParsedKeyPair()
+		fmt.Println("Here are some sample keys:\n\n - Private key:", privKey, "\n\n - Public key:", pubKey, "\n\n Press ENTER to continue...")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 		os.Exit(0)
 	}
 
