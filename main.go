@@ -50,7 +50,12 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if len(files) >= config.Backups {
+		if config.Backups < -1 || config.Backups == 0 {
+			fmt.Printf("Invalid backups value in config file: %v", config.Backups)
+			fmt.Printf("Set it to a positive integer to limit the amount of backups in the data folder, or you can set it -1 to disable this feature")
+			os.Exit(1)
+		}
+		if config.Backups != -1 && len(files) >= config.Backups {
 			sort.SliceStable(files, func(i, j int) bool { // Sort reversed
 				return files[i].Name() > files[j].Name()
 			})
