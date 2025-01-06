@@ -65,6 +65,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		defer outFile.Close()
 
 		// Create AES writer
 		outFile.Write(make([]byte, crypto.MACSUM_SIZE)) // Make space for the future macsum
@@ -96,7 +97,6 @@ func main() {
 		// And finally write the macsum
 		msum := mac.Sum(nil)
 		outFile.Write(msum) // Write the 64 bytes of encrypted macsum (this writes to the mac too, but we already evaluated the sum)
-		outFile.Close()
 
 	case "decrypt":
 
