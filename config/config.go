@@ -32,6 +32,7 @@ func Create() {
 		panic(err)
 	}
 	f.Write(config)
+	f.Close()
 }
 
 func Load() *Config {
