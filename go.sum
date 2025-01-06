@@ -1,6 +1,0 @@
-github.com/symbolicsoft/kyber-k2so v0.2.3 h1:noHVou69a9V/oL72YPp4huh+xkvkUUvKhL+B5/s5I0U=
-github.com/symbolicsoft/kyber-k2so v0.2.3/go.mod h1:9zjkh1uhFZIg2G5j/iN5rpxOEHPZL2W7kbxQqYGeOIs=
-golang.org/x/crypto v0.31.0 h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=
-golang.org/x/crypto v0.31.0/go.mod h1:kDsLvtWBEx7MV9tJOj9bnXsPbxwJQ6csT/x4KIN4Ssk=
-golang.org/x/sys v0.29.0 h1:TPYlXGxvx1MGTn2GiZDhnjPA9wZzZeGKHHmKhHYvgaU=
-golang.org/x/sys v0.29.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
