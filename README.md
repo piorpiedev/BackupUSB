@@ -5,21 +5,22 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 ---
 
-# Algorithms
+## Algorithms
 
   - Blake3: Used for the MacSum of the already encrypted file, in order to verify the file integrity before decrypting
   - Crystals Kyber K2SO: Used to generated and safely encrypt the whole header, key by key
   - AES256 CTR: Used to encrypt the main data block, using a random key generated on every execution
+  - Tar: Used to generate a constant stream of data, archiving the files to backup (uncompressed)
 
 ---
 
-# How this works
+## How does it work
 
-## First run
+#### First run
 
 > The program gets first executed, creates an empty config, and suggests to the user a newly generated key pair
 
-## Encryption
+#### Encryption
 
 > Backups the exceed the backup amount get deleted (oldest first) | Set it to -1 to disable
 >
@@ -29,7 +30,7 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 >
 > The macsum of the rest of the file (both encrypted header AND data) is finally written at the start of the file
 
-## Decryption
+#### Decryption
 
 > The MacSum is read, followed by the header
 >
@@ -39,22 +40,39 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 ---
 
-# File Structure
+## Streams
+
+In order to garantee everything to be done in memory, whilst working for very large file, the program in based on a series of read/write streams
+
+#### Encryption
+
+`File I/O` (Files) -> `Tar` -> `AES Encrypt` -> `File I/O` (Backup) _AND_ `MAC`
+
+#### Decryption
+
+1) `File I/O` (Backup) -> `MAC`
+
+2) `File I/O` (Backup) -> `AES Decrypt` -> `UnTar` -> `File I/O` (Files)
+
+---
+
+## File Structure
 
 `[MacSum]` | `[AesKey]` `[IV]` `[MacKey]` | `[Data]`
 
-### First Block (MacSum, Plain/Blake3)
+#### First Block (MacSum, Plain/Blake3)
 
   - **[MacSum]**: 64B - Blake3 of the already encrypted file, in order (both header and data)
 
-### Second Block (Header, Crystal)
+#### Second Block (Header, Crystal)
 
   - **[AesKey]***: 1568B / 32B - Random key generated with Crystals Kyber
   - **[IV]***: 1568B / 16B - Random key generated with Crystals Kyber (NOTE: On decryption this returns 32B, we take the first 16 of those)
   - **[MacKey]***: 1568B / 32B - Random key generated with Crystals Kyber
 
-### Third Block
+*The keys in this block have a different size when encrypted and decrypted
+
+#### Third Block
 
   - **[Data]**: AnySize / Same Size - AES256 CTR - This is the encrypted version of the tar, containing the files
 
-* The keys in this block have a different size when encrypted and decrypted
