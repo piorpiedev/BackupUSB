@@ -4,8 +4,6 @@ import (
 	"backupusb/archive"
 	configuration "backupusb/config"
 	"backupusb/crypto"
-	"crypto/hmac"
-	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -75,7 +73,7 @@ func main() {
 		// Create AES writer
 		outFile.Write(make([]byte, crypto.MACSUM_SIZE)) // Make space for the future macsum
 		header, enHeader := crypto.GenHeader([crypto.PUB_KEY_SIZE]byte(key))
-		mac := hmac.New(sha512.New, header.MacKey)
+		mac := crypto.NewMAC(header.MacKey)
 		parser := io.MultiWriter(outFile, mac)
 		enWriter, err := crypto.NewAesWriter(header.AesKey, header.IV, parser)
 		if err != nil {
@@ -142,7 +140,7 @@ func main() {
 		if _, err = io.Copy(mac, inFile); err != nil {
 			panic(err)
 		}
-		if !hmac.Equal(macSum, mac.Sum(nil)) { // Unnecessary, but let's leave it as is for good practice
+		if !crypto.CompareMacSums(macSum, mac.Sum(nil)) {
 			fmt.Println("Invalid macsum. It seems like the file has been tampered with")
 			os.Exit(1)
 		}

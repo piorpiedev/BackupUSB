@@ -1,15 +1,12 @@
 package crypto
 
 import (
-	"crypto/hmac"
-	"crypto/sha512"
 	"errors"
 	"hash"
 	"io"
 )
 
-const MACSUM_SIZE = 64 // Encrypted with AES, so EncryptedSize = Size
-const IV_SIZE = 16     // The secret is of size 32, but we only want the first 16
+const IV_SIZE = 16 // The secret is of size 32, but we only want the first 16
 const ENCRYPTED_HEADER_SIZE = CIPHER_SIZE * 3
 
 type EncryptedHeader Header
@@ -89,7 +86,7 @@ func ReadHeader(in io.Reader, privKey []byte) (*Header, hash.Hash, error) {
 	}
 
 	header := enHeader.DecryptKeys(privKey)
-	mac := hmac.New(sha512.New, header.MacKey)
+	mac := NewMAC(header.MacKey)
 	mac.Write(data)
 
 	return header, mac, nil
