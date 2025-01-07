@@ -7,9 +7,9 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 # Algorithms
 
-  - Sha512: Used for the MacSum, in order to verify the file integrity before decrypting
+  - Blake3: Used for the MacSum of the already encrypted file, in order to verify the file integrity before decrypting
+  - Crystals Kyber K2SO: Used to generated and safely encrypt the whole header, key by key
   - AES256 CTR: Used to encrypt the main data block, using a random key generated on every execution
-  - Crystals Kyber K2SO: Used to generated and safeley encrypt the whole header, key by key
 
 ---
 
@@ -43,9 +43,9 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 `[MacSum]` | `[AesKey]` `[IV]` `[MacKey]` | `[Data]`
 
-### First Block (MacSum, Plain/Sha512)
+### First Block (MacSum, Plain/Blake3)
 
-  - **[MacSum]**: 64B - Sha512 of the already encrypted file, in order (both header and data)
+  - **[MacSum]**: 64B - Blake3 of the already encrypted file, in order (both header and data)
 
 ### Second Block (Header, Crystal)
 
