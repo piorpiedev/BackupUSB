@@ -146,7 +146,7 @@ func main() {
 			fmt.Printf("Invalid macsum. It seems like the file has been tampered with (%v)\n", time.Since(verStartTime))
 			os.Exit(1)
 		}
-		fmt.Printf("Integrity verified in %v\n", time.Since(verStartTime))
+		fmt.Printf("Integrity verified in %v\n\n", time.Since(verStartTime))
 		inFile.Seek(int64(crypto.ENCRYPTED_HEADER_SIZE+crypto.MACSUM_SIZE), 0) // Back to the encrypted data start
 
 		// Create AES reader
