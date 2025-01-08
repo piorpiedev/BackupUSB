@@ -32,6 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	var fileN, folderN uint64 = 0, 0
 	startingTime := time.Now()
 	switch config.Mode {
 
@@ -64,7 +65,7 @@ func main() {
 		}
 
 		// Create file
-		outFile, err := os.Create("data/" + strconv.FormatInt(time.Now().UnixMilli(), 10) + FILE_EXTENSION)
+		outFile, err := os.Create("data/" + strconv.FormatInt(startingTime.UnixMilli(), 10) + FILE_EXTENSION)
 		if err != nil {
 			panic(err)
 		}
@@ -89,7 +90,7 @@ func main() {
 		// Compress, encrypt and write
 		// While the compression is executed, the header memory is generally reused (since it's not called anymore by the code)
 		fmt.Println("Compressing...")
-		if err = archive.Tar(config.Paths, enWriter); err != nil {
+		if fileN, folderN, err = archive.Tar(config.Paths, enWriter); err != nil {
 			removePanic(outFile, err)
 		}
 
@@ -114,7 +115,7 @@ func main() {
 
 		// Verify key len
 		if len(key) != crypto.PRIV_KEY_SIZE {
-			fmt.Printf("Invalid key in config file. Is it the right one?")
+			fmt.Println("Invalid key in config file. Is it the right one?")
 			os.Exit(1)
 		}
 
@@ -136,14 +137,16 @@ func main() {
 		}
 
 		// Verify file integrity
+		verStartTime := time.Now()
 		fmt.Println("Verifying file integrity...")
 		if _, err = io.Copy(mac, inFile); err != nil {
 			panic(err)
 		}
 		if !crypto.CompareMacSums(macSum, mac.Sum(nil)) {
-			fmt.Println("Invalid macsum. It seems like the file has been tampered with")
+			fmt.Printf("Invalid macsum. It seems like the file has been tampered with (%v)\n", time.Since(verStartTime))
 			os.Exit(1)
 		}
+		fmt.Printf("Integrity verified in %v\n", time.Since(verStartTime))
 		inFile.Seek(int64(crypto.ENCRYPTED_HEADER_SIZE+crypto.MACSUM_SIZE), 0) // Back to the encrypted data start
 
 		// Create AES reader
@@ -156,12 +159,13 @@ func main() {
 		fmt.Println("Extracting...")
 		folderName := strings.TrimSuffix(filepath.Base(path), FILE_EXTENSION)
 		os.Mkdir(folderName, os.ModeDir)
-		err = archive.Untar(enReader, folderName)
+		fileN, folderN, err = archive.Untar(enReader, folderName)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	fmt.Println("Done.")
-	fmt.Printf("Execution complete in %v\n", time.Since(startingTime))
+	fmt.Println("\nDone.")
+	fmt.Printf("%v files and %v folders have been affected\n", fileN, folderN)
+	fmt.Printf("Execution completed in %v\n", time.Since(startingTime))
 }
