@@ -1,4 +1,6 @@
-*config.json
-data/*
+data/
+.vscode/
 bin/
+
+*config.json
 go.sum
