@@ -59,8 +59,7 @@ func Tar(paths []string, out io.Writer) (files, folders uint64, err error) {
 				}
 				defer file.Close()
 
-				_, err = io.Copy(tarWriter, file)
-				if err != nil {
+				if _, err = io.Copy(tarWriter, file); err != nil {
 					return err
 				}
 				return nil
@@ -104,8 +103,8 @@ func Untar(in io.Reader, out string) (files, folders uint64, err error) {
 			return files, folders, err
 		}
 		defer file.Close()
-		_, err = io.Copy(file, tarReader)
-		if err != nil {
+		
+		if _, err = io.Copy(file, tarReader); err != nil {
 			return files, folders, err
 		}
 	}

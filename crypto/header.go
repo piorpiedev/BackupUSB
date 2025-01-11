@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-const IV_SIZE = 16 // The secret is of size 32, but we only want the first 16
+const IV_SIZE = 16 // MUST BE < CIPHER_SIZE | The secret is 32B, but we only take the first 16B
 const ENCRYPTED_HEADER_SIZE = CIPHER_SIZE * 3
 
 type EncryptedHeader Header
@@ -75,8 +75,7 @@ func (h *EncryptedHeader) Dump() []byte {
 func ReadHeader(in io.Reader, privKey []byte) (*Header, hash.Hash, error) {
 	// Read encrypted header
 	data := make([]byte, ENCRYPTED_HEADER_SIZE)
-	_, err := in.Read(data)
-	if err != nil {
+	if _, err := in.Read(data); err != nil {
 		return nil, nil, err
 	}
 
