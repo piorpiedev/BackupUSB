@@ -1,10 +1,11 @@
 from os import listdir, environ
+from sys import argv
 
 username = environ["username"].encode()
 replacement = b"user"
 
 for filename in listdir("bin"):
-    if not filename.endswith(".exe"): continue
+    if not filename.split(".")[0] == argv[1]: continue #TODO: Check this
     
     with open("bin/"+filename, "rb") as f:
         data = f.read().replace(username, replacement)
