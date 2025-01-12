@@ -68,6 +68,7 @@ Usage: backup [help | config | decrypt]
 
 ## TODOs
 
+  - Add test coverage
   - Insert an actual args manager, allowing to specify the command arguments and pass them more clearly
   - Add sftp support for backups (with option to ALSO store locally, as well as to send to multiple sftps)
   - Instead of saving folders/files inside of the tar directly, first check that the names don't repeat themselves
