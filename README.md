@@ -40,6 +40,15 @@ Usage: backup [help | config | decrypt]
 
 ---
 
+## TODO
+
+  - Insert an actual args manager, allowing to specify the arg and pass it more clearly
+  - Add sftp support for backup destination (with option to ALSO store locally, as well as to send to multiple sftps)
+  - Instead of saving folders/files inside of the tar directly, first check that the names don't repeat themselves
+  - Add option to store the paths with a full path, instead of just the basepath specified
+
+---
+
 ## Algorithms
 
   - Blake3: Used for the MacSum of the already encrypted file, in order to verify the file integrity before decrypting
