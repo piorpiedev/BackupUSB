@@ -28,8 +28,8 @@ Usage: backup [help | config | decrypt]
 
 #### Config (`backup config`)
 > This will open an interactive config editor **in terminal**, since the config itself is stored in a statically encrypted format
-
-![config](./images/config.png)
+> 
+> ![config](./images/config.png)
 
 #### Decrypt (`backup decrypt`)
 > You can run this command to decrypt a given backup
