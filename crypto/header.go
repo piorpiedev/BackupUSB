@@ -72,6 +72,12 @@ func (h *EncryptedHeader) Dump() []byte {
 	return b
 }
 
+func (h *Header) Destroy() {
+	DestroyKey(h.AesKey)
+	DestroyKey(h.IV)
+	DestroyKey(h.MacKey)
+}
+
 func ReadHeader(in io.Reader, privKey []byte) (*Header, hash.Hash, error) {
 	// Read encrypted header
 	data := make([]byte, ENCRYPTED_HEADER_SIZE)

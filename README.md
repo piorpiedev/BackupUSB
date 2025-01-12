@@ -1,7 +1,42 @@
 # BackupUSB
 
-This is a simple project, meant to safely backup to an external drive one ore multiple paths, recursively, in order for them to be restored later
+This is a simple project, meant to safely backup to an external drive one or multiple paths, recursively, in order for them to be restored later
 This project is MEANT to rely on asyncronous encryption, in order to keep the backups (stored with the program to generate them) and the decryption key separately
+
+---
+
+## Commands
+
+```txt
+Usage: backup [help | config | decrypt]
+
+  * backup help
+     - Showes you this message
+
+  * backup config
+     - Lets you edit the program configuration
+
+  * backup decrypt <file> [destination] [--tar]
+     - Decrypts a previous backup file
+     - You can also set the private key as an enviroment variable (PRIV_KEY) to avoid pausing
+     - Please AVOID storing the key as a persistent value and only set it on each execution
+```
+
+#### No Args
+
+> If a config is found (`config.bc`) this will simply start backing up the paths with the given config
+
+#### Config (`backup config`)
+> This will open an interactive config editor **in terminal**, since the config itself is stored in a statically encrypted format
+
+![config](./images/config.png)
+
+#### Decrypt (`backup decrypt`)
+> You can run this command to decrypt a given backup
+> 
+> The destination path refers to the path of the decrypted output. It defaults to `_[FILENAME]` for backups extracted to folders, and to `[FILENAME].tar` for backups only uncompressed, and still in a tar format
+>
+> Finally, you can specify the argument `--tar` either as the first or as the last argument, in order to only decompress the backup, and not extract it (as described above)
 
 ---
 
@@ -11,6 +46,7 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
   - Crystals Kyber K2SO: Used to generated and safely encrypt the whole header, key by key
   - AES256 CTR: Used to encrypt the main data block, using a random key generated on every execution
   - Tar: Used to generate a constant stream of data, archiving the files to backup (uncompressed)
+  - Zstandard: Used to compress the already tarred file (compression level 5)
 
 ---
 
@@ -18,15 +54,15 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 #### First run
 
-> The program gets first executed, creates an empty config, and suggests to the user a newly generated key pair
+> The program gets first executed, creates a default config, suggests a randomly generated key pair (the public key is added to config automatically) and the config editor is opened
 
 #### Encryption
 
 > Backups the exceed the backup amount get deleted (oldest first) | Set it to -1 to disable
 >
-> The file is created (`data/[TIMESTAMP].bk`), and 64 bytes at the start are skipped for the macsum
+> The file is created (`[DESTINATION]/[TIMESTAMP]`), and 64 bytes at the start are skipped for the macsum
 >
-> The preencrypted header is written to file, as well as the data itself, that gets encrypted as the same time as it's archived (in order to avoid any possible file recovery)
+> The pre-encrypted header is written to file, as well as the data itself, that gets encrypted as the same time as it's archived (in order to avoid any possible file recovery)
 >
 > The macsum of the rest of the file (both encrypted header AND data) is finally written at the start of the file
 
@@ -34,7 +70,7 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 
 > The MacSum is read, followed by the header
 >
-> We evalutate the MacSum of the encrypted header and data and compare it to the MacSum found previously
+> MacSum of the encrypted header and data is calculated and compared to the MacSum found previously
 >
 > IF, and only if, it matches, continue with the extraction into a folder named with the backup timestamp
 
@@ -46,13 +82,13 @@ In order to garantee everything to be done in memory, whilst working for very la
 
 #### Encryption
 
-`File I/O` (Files) -> `Tar` -> `AES Encrypt` -> `File I/O` (Backup) _AND_ `MAC`
+`File I/O` (Files) -> `Tar` -> `Zstandard` -> `AES Encrypt` -> `File I/O` (Backup) _AND_ `MAC`
 
 #### Decryption
 
 1) `File I/O` (Backup) -> `MAC`
 
-2) `File I/O` (Backup) -> `AES Decrypt` -> `UnTar` -> `File I/O` (Files)
+2) `File I/O` (Backup) -> `AES Decrypt` -> `Zstandard` -> `UnTar` -> `File I/O` (Files)
 
 ---
 
