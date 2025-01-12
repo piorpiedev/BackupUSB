@@ -139,7 +139,6 @@ func run() bool {
 			fmt.Println(usageMsg)
 			return true
 		}
-		os.Chdir(filepath.Dir(os.Args[0]))
 		target := parsePath(args[0])
 
 		// Get the destination
