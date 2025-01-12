@@ -11,7 +11,6 @@ import (
 
 const CONFIG_PATH = "config.bc"
 const DEFAULT_DESTINATION = "data/"
-const MIN_AMOUNT = 5
 
 func getConfigKey() (key, iv []byte) {
 	// These two are just static values used for static encryption.
