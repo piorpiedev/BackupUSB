@@ -5,7 +5,7 @@ username = environ["username"].encode()
 replacement = b"user"
 
 for filename in listdir("bin"):
-    if not filename.split(".")[0] == argv[1]: continue #TODO: Check this
+    if not filename.split(".")[0] == argv[1]: continue
     
     with open("bin/"+filename, "rb") as f:
         data = f.read().replace(username, replacement)
