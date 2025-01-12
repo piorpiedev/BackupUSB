@@ -68,6 +68,7 @@ Usage: backup [help | config | decrypt]
 
 ## TODOs
 
+  - Check if the linux binary shipped within the releases actually works, since [lukechampine/blake3](https://github.com/lukechampine/blake3) requires C support
   - Add test coverage
   - Insert an actual args manager, allowing to specify the command arguments and pass them more clearly
   - Add sftp support for backups (with option to ALSO store locally, as well as to send to multiple sftps)
