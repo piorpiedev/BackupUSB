@@ -33,7 +33,7 @@ func showHelp() {
 	s := strings.Repeat(" ", 4)
 
 	fmt.Printf("Usage: %s [help | config | decrypt]\n\n", os.Args[0])
-	fmt.Printf("  * %s %s\n%s - Showes you this message\n\n", os.Args[0], usageMsgs["help"], s)
+	fmt.Printf("  * %s %s\n%s - Shows you this message\n\n", os.Args[0], usageMsgs["help"], s)
 	fmt.Printf("  * %s %s\n%s - Lets you edit the program configuration\n\n", os.Args[0], usageMsgs["config"], s)
 
 	fmt.Printf(
