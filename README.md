@@ -1,6 +1,7 @@
 # BackupUSB
 
 This is a simple project, meant to safely backup to an external drive one or multiple paths, recursively, in order for them to be restored later
+
 This project is MEANT to rely on asyncronous encryption, in order to keep the backups (stored with the program to generate them) and the decryption key separately
 
 ---
