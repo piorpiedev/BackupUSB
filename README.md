@@ -12,7 +12,7 @@ This project is MEANT to rely on asyncronous encryption, in order to keep the ba
 Usage: backup [help | config | decrypt]
 
   * backup help
-     - Showes you this message
+     - Shows you this message
 
   * backup config
      - Lets you edit the program configuration
