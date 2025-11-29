@@ -1,6 +1,6 @@
 module backupusb
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/f1bonacc1/glippy v1.1.0
@@ -18,8 +18,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/tview v0.0.0-20241227133733-17b7edb88c57
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 )
