@@ -23,7 +23,9 @@ func DecryptBackup(path, destination string, privKey []byte, extract bool) (uint
 
 	// Read the macsum
 	macSum := make([]byte, crypto.MACSUM_SIZE)
-	inFile.Read(macSum)
+	if _, err := io.ReadFull(inFile, macSum); err != nil {
+		panic(err)
+	}
 
 	// Read the file header (keys)
 	header, mac, err := crypto.ReadHeader(inFile, privKey)
@@ -45,16 +47,17 @@ func DecryptBackup(path, destination string, privKey []byte, extract bool) (uint
 	inFile.Seek(int64(crypto.ENCRYPTED_HEADER_SIZE+crypto.MACSUM_SIZE), 0) // Back to the encrypted data start
 
 	// Create AES reader
-	enReader, err := crypto.NewAesReader(header.AesKey, header.IV, inFile)
+	aesReader, err := crypto.NewAesReader(header.AesKey, header.IV, inFile)
 	if err != nil {
 		panic(err)
 	}
 
 	// Set up decompression (don't extract yet)
-	zstdReader, err := zstd.NewReader(enReader, zstd.WithDecoderConcurrency(1)) // No need to specify compression level. If concurrency is enabled (>1) the end of the file isn't copied
+	zstdReader, err := zstd.NewReader(aesReader, zstd.WithDecoderConcurrency(1)) // No need to specify compression level. If concurrency is enabled (>1) the end of the file isn't copied
 	if err != nil {
 		panic(err)
 	}
+	defer zstdReader.Close()
 
 	// Decrypt only
 	if !extract {

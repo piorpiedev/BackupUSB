@@ -37,10 +37,10 @@ func (c *Config) Save() error {
 	// Pass through encryptor
 	key, iv := getConfigKey()
 	aesWriter, err := crypto.NewAesWriter(key, iv, confFile)
-	defer aesWriter.Flush()
 	if err != nil {
 		panic(err)
 	}
+	defer aesWriter.Close()
 
 	// Serialize data
 	enc := gob.NewEncoder(aesWriter)

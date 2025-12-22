@@ -41,25 +41,25 @@ func removePanic(f *os.File, err error) {
 }
 
 func CreateBackup(outFile *os.File, pubKey [crypto.PUB_KEY_SIZE]byte, paths []string) (fileN uint64, folderN uint64) {
-
-	// Create AES writer
 	outFile.Write(make([]byte, crypto.MACSUM_SIZE)) // Make space for the future macsum
 	header, enHeader := crypto.GenHeader(pubKey)
+
+	// Prepare the writers
 	mac := crypto.NewMAC(header.MacKey)
-	parser := io.MultiWriter(outFile, mac)
-	enWriter, err := crypto.NewAesWriter(header.AesKey, header.IV, parser)
+	macAndFile := io.MultiWriter(outFile, mac)
+	aesWriter, err := crypto.NewAesWriter(header.AesKey, header.IV, macAndFile)
 	if err != nil {
 		removePanic(outFile, err)
 	}
 
 	// Write header
-	if _, err = parser.Write(enHeader.Dump()); err != nil {
+	if _, err := macAndFile.Write(enHeader.Dump()); err != nil {
 		removePanic(outFile, err)
 	}
 
 	// Compress, encrypt and write
 	fmt.Println("Compressing...")
-	zstdWriter, err := zstd.NewWriter(enWriter, zstd.WithEncoderLevel(zstd.SpeedBetterCompression), zstd.WithEncoderConcurrency(4)) // Compression level 5. Apprently we can keep concurrency here
+	zstdWriter, err := zstd.NewWriter(aesWriter, zstd.WithEncoderLevel(zstd.SpeedBetterCompression), zstd.WithEncoderConcurrency(4)) // Compression level 5. Apprently we can keep concurrency here
 	if err != nil {
 		removePanic(outFile, err)
 	}
@@ -69,7 +69,6 @@ func CreateBackup(outFile *os.File, pubKey [crypto.PUB_KEY_SIZE]byte, paths []st
 	zstdWriter.Close()
 
 	// Flush the remaining buffer and write the macsum at the start of the file
-	enWriter.Flush()
 	outFile.Seek(0, 0)
 	msum := mac.Sum(nil)
 	header.Destroy()
