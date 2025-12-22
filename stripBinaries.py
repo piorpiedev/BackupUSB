@@ -1,7 +1,7 @@
-from os import listdir, environ
+from os import listdir
 from sys import argv
 
-username = environ["username"].encode()
+username = argv[2].encode()
 replacement = b"user"
 
 for filename in listdir("bin"):
