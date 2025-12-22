@@ -76,7 +76,7 @@ func run() bool {
 
 		// Remove older files
 		startingTime := time.Now()
-		os.Mkdir(config.Destination, os.ModeDir)
+		os.Mkdir(config.Destination, os.ModePerm)
 		backups.DeleteOldBackups(config.Destination, config.Amount)
 
 		// Create file
