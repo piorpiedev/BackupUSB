@@ -71,7 +71,7 @@ func DecryptBackup(path, destination string, privKey []byte, extract bool) (uint
 	// Decrypt and extract
 	fmt.Println("Extracting...")
 	folderName := filepath.Join(destination, "_"+filepath.Base(path))
-	os.Mkdir(folderName, os.ModeDir)
+	os.Mkdir(folderName, os.ModePerm)
 
 	fileN, folderN, err := archive.Untar(zstdReader, folderName)
 	header.Destroy()
