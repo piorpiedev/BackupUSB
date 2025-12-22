@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/f1bonacc1/glippy"
 )
 
 var usageMsgs = map[string]string{
@@ -150,8 +152,16 @@ func run() bool {
 		// Ask for the private key
 		b64PrivKey := strings.Trim(os.Getenv("PRIV_KEY"), " ") // Checks if stored
 		if b64PrivKey == "" {
-			fmt.Print("Enter the private/decryption key: ")
-			fmt.Scanln(&b64PrivKey)
+			fmt.Println("Copy the private key to the clipboard and press Enter...")
+			fmt.Scanln() // Wait for user to confirm they copied it
+
+			content, err := glippy.Get()
+			if err != nil {
+				fmt.Println("Clipboard access not supported")
+				fmt.Println("Please use the env variabile instead (PRIV_KEY)")
+				return false
+			}
+			b64PrivKey = content
 		}
 
 		// Verifies it
